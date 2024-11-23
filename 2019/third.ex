@@ -11,8 +11,6 @@ defmodule Third do
         process_puzzle(x, {acc, bcc, alr, first})
       end)
 
-    IO.puts("Potential candidates : #{inspect(exists)}")
-
     distance = Enum.min(Enum.map(exists, fn x -> abs(elem(x, 0)) + abs(elem(x, 1)) end))
 
     IO.puts("Closest distance : #{distance}")
@@ -21,19 +19,19 @@ defmodule Third do
   def process_puzzle(x, {acc, bcc, alr, first}) do
     processedInput = Enum.to_list(String.split(to_string(x), ","))
 
-    {data, _, alr, first} =
+    {data, _, alr, _} =
       Enum.reduce(processedInput, {acc, bcc, alr, first}, fn y, {acc, bcc, alr, first} ->
         handle_coordinates(y, {acc, bcc, alr, first})
       end)
 
-    {data, {0, 0}, alr, first}
+    {data, {0, 0}, alr, false}
   end
 
   def handle_coordinates(x, {acc, pos, alr, first}) do
     step = get_integer(String.slice(x, 1..String.length(x)))
     direction = String.at(x, 0)
 
-    {last, new_acc, alr, _} =
+    {last, new_acc, alr, first} =
       Enum.reduce(1..step, {pos, acc, alr, first}, fn _x, {bcc, acc, alr, first} ->
         start = bcc
 
@@ -66,7 +64,7 @@ defmodule Third do
         end
       end)
 
-    {new_acc, last, alr, false}
+    {new_acc, last, alr, first}
   end
 
   def get_wire(first) do
