@@ -1,60 +1,95 @@
 defmodule Third do
+  defmodule Metadata do
+    defstruct visited: false, wire: 0
+  end
 
   def main() do
     input = read()
 
-    _ = Enum.reduce(input, {%{}, {0,0}, []}, fn x, {acc, bcc, alr} -> process_puzzle(x, {acc, bcc, alr}) end)
+    {_, _, exists, _} =
+      Enum.reduce(input, {%{}, {0, 0}, [], true}, fn x, {acc, bcc, alr, first} ->
+        process_puzzle(x, {acc, bcc, alr, first})
+      end)
+
+    IO.puts("Potential candidates : #{inspect(exists)}")
+
+    distance = Enum.min(Enum.map(exists, fn x -> abs(elem(x, 0)) + abs(elem(x, 1)) end))
+
+    IO.puts("Closest distance : #{distance}")
   end
 
-  def process_puzzle(x, {acc, bcc, alr}) do
+  def process_puzzle(x, {acc, bcc, alr, first}) do
     processedInput = Enum.to_list(String.split(to_string(x), ","))
 
-    {data, last, alr} = Enum.reduce(processedInput, {acc, bcc, alr}, fn y, {acc, bcc, alr} -> handle_coordinates(y, {acc, bcc, alr}) end)
+    {data, _, alr, first} =
+      Enum.reduce(processedInput, {acc, bcc, alr, first}, fn y, {acc, bcc, alr, first} ->
+        handle_coordinates(y, {acc, bcc, alr, first})
+      end)
 
-    IO.puts("Already exists : #{inspect(alr)}")
-    # IO.puts("Map : #{inspect(data)}")
-
-    {data, last, alr}
+    {data, {0, 0}, alr, first}
   end
 
-  def handle_coordinates(x, {acc, pos, alr}) do
+  def handle_coordinates(x, {acc, pos, alr, first}) do
     step = get_integer(String.slice(x, 1..String.length(x)))
     direction = String.at(x, 0)
 
-    {last, new_acc, alr} = Enum.reduce(1..step, {pos, acc, alr}, fn _x, {bcc, acc, alr} ->
-      start = bcc
+    {last, new_acc, alr, _} =
+      Enum.reduce(1..step, {pos, acc, alr, first}, fn _x, {bcc, acc, alr, first} ->
+        start = bcc
 
-      # IO.puts("Start value : #{inspect(start)}")
-      new_coord = calculate_coordinate(start, direction)
+        new_coord = calculate_coordinate(start, direction)
 
-      case Map.fetch(acc, new_coord) do
-        {:ok, _value} ->
-          # IO.puts("Already exists : #{inspect(start)} value : #{value}")
-          {new_coord, acc, [new_coord | alr]}
-        :error ->
-          new_acc = Map.put(acc, new_coord, true)
-          {new_coord, new_acc, alr}
-      end
-    end)
-    # IO.puts("Last value : #{inspect(last)}")
-    # IO.puts("Map value : #{new_acc[last]}")
-    {new_acc, last, alr}
+        case Map.fetch(acc, new_coord) do
+          {:ok, value} ->
+            current_wire = get_wire(first)
+            wire = value.wire
+
+            if wire != current_wire do
+              {new_coord, acc, [new_coord | alr], first}
+            else
+              {new_coord, acc, alr, first}
+            end
+
+          :error ->
+            new_acc =
+              Map.put(acc, new_coord, %Metadata{
+                visited: true,
+                wire:
+                  if first do
+                    1
+                  else
+                    2
+                  end
+              })
+
+            {new_coord, new_acc, alr, first}
+        end
+      end)
+
+    {new_acc, last, alr, false}
   end
 
-  def calculate_coordinate({x,y}, direction) do
+  def get_wire(first) do
+    if first do
+      1
+    else
+      2
+    end
+  end
+
+  def calculate_coordinate({x, y}, direction) do
     case direction do
       "R" ->
-        x = x + 1
-        {x, y}
+        {x + 1, y}
+
       "L" ->
-        x = x - 1
-        {x,y}
+        {x - 1, y}
+
       "D" ->
-        y = y - 1
-        {x,y}
+        {x, y - 1}
+
       "U" ->
-        y = y + 1
-        {x,y}
+        {x, y + 1}
     end
   end
 
