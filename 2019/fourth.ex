@@ -30,17 +30,29 @@ defmodule Fourth do
   def check_similarity(num) do
     list = Integer.digits(num)
 
-    {_, check} = Enum.reduce(list, {0, false}, fn x,{last,exist} ->
-       if !exist do
+    {_, groups, group} = Enum.reduce(list, {-1, {}, {}}, fn x,{last,groups,group} ->
+      if last == -1 do
+        group = Tuple.append(group, x)
+        {x, groups, group}
+      else
         if last == x do
-          {last, true}
-        else {x, exist}
+          group = Tuple.append(group, last)
+          {x, groups, group}
+        else
+          groups = Tuple.append(groups, group)
+          group = {x}
+          {x, groups, group}
         end
-       else
-        {last, exist}
-       end
+      end
     end)
-    check
+
+    groups = Tuple.append(groups,group)
+
+    new_groups = Enum.filter(Tuple.to_list(groups), fn x -> tuple_size(x) > 1 end)
+
+    cond_groups = Enum.filter(new_groups, fn x -> tuple_size(x) == 2 end)
+
+    length(cond_groups) >= 1
   end
 
 end
