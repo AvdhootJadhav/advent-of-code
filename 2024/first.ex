@@ -50,7 +50,7 @@ defmodule First do
   end
 
   def read() do
-    stream = File.stream!("../2019/demo.txt")
+    stream = File.stream!("../demo.txt")
     inputList = Enum.to_list(Enum.map(stream, fn x -> String.trim(x) end))
     inputList
   end
