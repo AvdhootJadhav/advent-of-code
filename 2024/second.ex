@@ -8,10 +8,11 @@ defmodule Second do
 
     {_, c} = Enum.reduce(input, {0,0}, fn x,{last,count}->
       {l, c} = Enum.reduce_while(tl(x), {hd(x), 0}, fn y,{last, count} ->
-        if abs(y-last) >= 1 && abs(y-last) <= 3 do
-          count = count + 1
-          {:cont, {y,count}}
-        else {:halt, {last, count}}
+        cond do
+          abs(y-last) >= 1 && abs(y-last) <= 3 ->
+            count = count + 1
+            {:cont, {y,count}}
+          true -> {:halt, {last, count}}
         end
       end)
       if c === length(x)-1 do
