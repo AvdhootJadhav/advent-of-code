@@ -6,8 +6,6 @@ defmodule Third do
 
     values = Regex.scan(~r/mul\(\d{1,3},\d{1,3}\)|do\(\)|don't\(\)/, input)
 
-    # IO.puts("#{inspect(values)}")
-
     {_, data} =
       Enum.reduce(values, {true, []}, fn [x], {take, data} ->
         case x do
