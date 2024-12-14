@@ -1,51 +1,48 @@
 defmodule Third do
   def main() do
-    input = read()
+    input =
+      read()
+      |> Enum.join("")
 
-    values = Enum.map(input, fn x->
-      filtered = Regex.scan(~r/mul\([0-9]{1,3},[0-9]{1,3}\)|do\(\)|don't\(\)/, x)
-      Enum.map(filtered, fn [y] -> y end)
-    end)
+    values = Regex.scan(~r/mul\(\d{1,3},\d{1,3}\)|do\(\)|don't\(\)/, input)
 
-    values = Enum.map(values, fn x ->
-      {_, data} = Enum.reduce(x, {true, []}, fn x,{take,data}->
+    # IO.puts("#{inspect(values)}")
+
+    {_, data} =
+      Enum.reduce(values, {true, []}, fn [x], {take, data} ->
         case x do
           "do()" ->
             {true, data}
+
           "don't()" ->
             {false, data}
+
           _ ->
             if take do
-              data = [x|data]
+              data = [x | data]
               {take, data}
             else
               {take, data}
             end
         end
       end)
-      data
-    end)
 
-    formatted_input = values
-    |> Enum.map(fn x->
-      Enum.map(x, fn y->
-        String.replace(y, "mul(", "")
+    formatted_input =
+      data
+      |> Enum.map(fn x ->
+        String.replace(x, "mul(", "")
         |> String.replace(")", "")
         |> String.split(",")
         |> Enum.map(fn x -> get_integer(x) end)
       end)
-    end)
 
-    result = Enum.reduce(formatted_input, 0, fn x,sum->
-      sum = Enum.reduce(x, sum, fn [a,b],c->
-        c = c + a*b
-        c
+    result =
+      Enum.reduce(formatted_input, 0, fn [a, b], sum ->
+        sum = sum + a * b
+        sum
       end)
-      sum
-    end)
 
     IO.puts("Result : #{result}")
-
   end
 
   def read() do
@@ -60,7 +57,6 @@ defmodule Third do
       _ -> nil
     end
   end
-
 end
 
 Third.main()
